@@ -1,0 +1,96 @@
+
+import { useEffect } from 'react';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ClerkProvider } from '@clerk/clerk-react';
+import { ThemeProvider } from "@/hooks/useTheme";
+import { usePreloader } from "@/hooks/usePreloader";
+import { SimplePreloader } from "@/components/SimplePreloader";
+import { Layout } from "@/components/Layout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthLayout } from "@/components/AuthLayout";
+import Homepage from "./pages/Homepage";
+import Dashboard from "./pages/Dashboard";
+import TickerInsights from "./pages/TickerInsights";
+import Portfolio from "./pages/Portfolio";
+import Alerts from "./pages/Alerts";
+import Explainer from "./pages/Explainer";
+import News from "./pages/News";
+import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
+import NewsAnalytics from "./pages/NewsAnalytics";
+
+const queryClient = new QueryClient();
+
+// Clerk publishable key
+const CLERK_PUBLISHABLE_KEY = "pk_test_aW5jbHVkZWQtdXJjaGluLTE0LmNsZXJrLmFjY291bnRzLmRldiQ";
+
+const AppContent = () => {
+  const { isLoading } = usePreloader({ minLoadTime: 3000 });
+
+  if (isLoading) {
+    return <SimplePreloader onComplete={() => {}} />;
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Homepage />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/news-analytics" element={<NewsAnalytics />} />
+        <Route path="/login" element={
+          <AuthLayout>
+            <Login />
+          </AuthLayout>
+        } />
+        <Route path="/signup" element={
+          <AuthLayout>
+            <Signup />
+          </AuthLayout>
+        } />
+        
+        {/* Protected routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
+          <Route path="ticker" element={<TickerInsights />} />
+          <Route path="news" element={<News />} />
+          <Route path="portfolio" element={<Portfolio />} />
+          <Route path="alerts" element={<Alerts />} />
+          <Route path="explainer" element={<Explainer />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+const App = () => {
+  return (
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system" storageKey="sentinel-ui-theme">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppContent />
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
+};
+
+export default App;
